@@ -19,7 +19,8 @@ class DbHelper {
   Future<Database> _initDatabase(String dbName) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, dbName);
-    return await openDatabase(path, version: 1, onCreate: onCreate);
+
+    return await openDatabase(path, version: 1, onCreate: _onCreate);
   }
 
   Future _onCreate(Database db, int version) async {
@@ -29,7 +30,7 @@ class DbHelper {
       type TEXT CHECK (type IN ('income', 'expense')) NOT NULL,
       category TEXT NOT NULL,
       description TEXT NOT NULL,
-      amount REAL TEXT NOT NULL,
+      amount REAL NOT NULL,
       date TEXT NOT NULL
     )
     ''');

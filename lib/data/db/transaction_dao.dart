@@ -5,14 +5,16 @@ import 'package:moneyappsqflite/data/model/transaction.dart';
 
 class TransactionDao {
   final dbHelper = DbHelper();
-  Future<int> insertTransaction (Transaction transactions) async {
+
+  Future<int> insertTransaction(Transaction transactions) async {
     final db = await dbHelper.database;
-    return await db.insert('transaction', transactions.toMap());
+    return await db.insert('transactions', transactions.toMap());
   }
 
   Future<List<Transaction>> getAllTransactions() async {
     final db = await dbHelper.database;
     final result = await db.query('transactions');
+
     for (var map in result) {
       log('Transaction from DB: ${Transaction.fromMap(map).toJson()}');
     }
@@ -22,18 +24,40 @@ class TransactionDao {
   Future<double> getIncome() async {
     final db = await dbHelper.database;
     final incomeResult = await db.rawQuery(
-      'SELECT SUM(amount)  as total_income FROM transaction WHERE TYPE = ?',
+      'SELECT SUM(amount) as total_income FROM transactions WHERE TYPE = ?',
       ['income'],
     );
     return (incomeResult.first['total_income'] as num?)?.toDouble() ?? 0.0;
   }
 
-   Future<double> getExpense() async {
+  Future<double> getExpense() async {
     final db = await dbHelper.database;
     final expenseesult = await db.rawQuery(
-      'SELECT SUM(amount)  as total_expense FROM transaction WHERE TYPE = ?',
+      'SELECT SUM(amount) as total_expense FROM transactions WHERE TYPE = ?',
       ['expense'],
     );
     return (expenseesult.first['total_expense'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  Future<double> getBalance() async {
+    // perhitungan balance
+    final income = await getIncome();
+    final expense = await getExpense();
+    return income - expense;
+  }
+
+  Future<int> updateTransaction(int id, Transaction transaction) async {
+    final db = await dbHelper.database;
+    return await db.update(
+      'transaction',
+      transaction.toMap(),
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<int> deleteTransaction(int id) async {
+    final db = await dbHelper.database;
+    return await db.delete('transactions', where: 'id = ?', whereArgs: [id]);
   }
 }
